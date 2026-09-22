@@ -1,751 +1,210 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>클로드 초급 실습형 프롬프트 라이브러리</title>
-  <style>
-    :root{
-      --bg:#f6f8fb;
-      --card:#ffffff;
-      --text:#1f2937;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-      --primary:#12b3a8;
-      --primary-dark:#0e8f87;
-      --accent:#eefbf9;
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-      --radius:18px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,"Noto Sans KR",sans-serif;
-      color:var(--text);
-      background:linear-gradient(180deg,#f8fbfd 0%, #f5f8fb 100%);
-      line-height:1.55;
-      word-break:keep-all;
-      overflow-wrap:break-word;
-    }
-    .wrap{max-width:1280px;margin:0 auto;padding:32px 20px 48px}
-    .hero{
-      background:linear-gradient(135deg,#0ea5a4 0%, #2563eb 100%);
-      color:#fff;
-      border-radius:28px;
-      padding:34px 30px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-    .hero:after{
-      content:"";
-      position:absolute;inset:auto -120px -120px auto;
-      width:260px;height:260px;border-radius:50%;
-      background:rgba(255,255,255,.12);
-      filter:blur(0px);
-    }
-    .eyebrow{font-size:14px;letter-spacing:.08em;text-transform:uppercase;opacity:.9;margin:0 0 10px}
-    h1{margin:0;font-size:34px;line-height:1.2}
-    .subtitle{margin:12px 0 0;font-size:16px;opacity:.95;max-width:820px}
-    .meta{
-      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:22px;
-    }
-    .meta .box{
-      background:rgba(255,255,255,.13);backdrop-filter:blur(8px);
-      border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:14px 16px;
-    }
-    .meta .label{display:block;font-size:12px;opacity:.8;margin-bottom:4px}
-    .meta .value{font-weight:700;font-size:15px}
-    .grid{display:grid;grid-template-columns:320px 1fr;gap:20px;margin-top:20px}
-    .panel{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
-    .panel h2{margin:0;font-size:20px}
-    .panel-head{padding:22px 22px 0}
-    .panel-body{padding:18px 22px 22px}
-    .table{
-      width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:18px;border:1px solid var(--line)
-    }
-    .table th,.table td{
-      padding:16px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px
-    }
-    .table th{background:#1bb7ab;color:#fff;text-align:left;font-weight:700}
-    .table tr:last-child td{border-bottom:none}
-    .module-tag{
-      display:inline-block;padding:6px 10px;border-radius:999px;background:var(--accent);color:var(--primary-dark);font-weight:700;font-size:13px
-    }
-    .unit{font-weight:700;margin-bottom:4px}
-    .detail{color:#374151}
-    .sidebar{display:flex;flex-direction:column;gap:16px}
-    .info-card{padding:20px;border-radius:24px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
-    .info-card h3{margin:0 0 10px;font-size:17px}
-    .info-card p,.info-card li{margin:0;color:var(--muted);font-size:14px}
-    .info-card ul{margin:10px 0 0;padding-left:18px;display:grid;gap:8px}
-    .searchbar{
-      display:flex;gap:10px;align-items:center;margin:0 0 18px
-    }
-    .searchbar input{
-      flex:1;padding:14px 16px;border:1px solid var(--line);border-radius:14px;font-size:15px;outline:none;background:#fff
-    }
-    .searchbar input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(18,179,168,.12)}
-    .searchbar .chip{padding:12px 14px;border-radius:14px;background:#eefbf9;color:var(--primary-dark);font-weight:700;font-size:14px;white-space:nowrap}
-    .section{margin-top:20px}
-    .section-title{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:0 0 14px}
-    .section-title h2{font-size:22px}
-    .section-title span{color:var(--muted);font-size:13px}
-    .prompt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-    .prompt-card{
-      border:1px solid var(--line);border-radius:20px;background:#fff;padding:18px;box-shadow:0 6px 18px rgba(15,23,42,.05)
-    }
-    .prompt-card[data-module="클로드 기초"]{border-top:5px solid #14b8a6}
-    .prompt-card[data-module="에이전트 시작"]{border-top:5px solid #3b82f6}
-    .prompt-card[data-module="에이전트 심화"]{border-top:5px solid #8b5cf6}
-    .prompt-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
-    .badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#f3f4f6;color:#374151}
-    .prompt-card h3{margin:0;font-size:17px}
-    .prompt-card p{margin:10px 0 0;color:#4b5563;font-size:14px}
-    .prompt-box{
-      margin-top:12px;background:#0f172a;color:#e5e7eb;border-radius:16px;padding:14px 14px 12px;position:relative
-    }
-    .prompt-box pre{margin:0;white-space:pre-wrap;word-break:keep-all;font-family:ui-monospace,SFMono-Regular,Consolas,Monaco,monospace;font-size:13px;line-height:1.55}
-    .copy-btn{
-      margin-top:10px;border:none;background:#e2f8f5;color:#06615b;font-weight:700;padding:8px 12px;border-radius:10px;cursor:pointer
-    }
-    .copy-btn:hover{background:#cbf2ee}
-    .footer-note{margin-top:18px;color:var(--muted);font-size:13px}
-    .pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .pill{padding:7px 10px;border-radius:999px;background:#f8fafc;border:1px solid var(--line);font-size:12px;color:#4b5563}
-    .source-tag{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
-    .source-tag.curriculum{background:#eefbf9;color:var(--primary-dark);border:1px solid #b9ece6}
-    .source-tag.added{background:#fff3e6;color:#b45309;border:1px solid #fcd9ae}
-    .source-tag .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
-    .source-tag.curriculum .dot{background:var(--primary-dark)}
-    .source-tag.added .dot{background:#f59e0b}
-    .prompt-card[data-source="added"]{border-top:5px solid #f59e0b}
-    .legend{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 16px}
-    .ref-line{margin:8px 0 0 !important;font-size:12px;font-weight:700;color:var(--primary-dark);letter-spacing:.01em}
-    .prompt-card[data-source="added"] .ref-line{color:#b45309}
-    @media (max-width: 1040px){
-      .grid{grid-template-columns:1fr}
-      .meta{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .prompt-grid{grid-template-columns:1fr}
-    }
-    @media print{
-      body{background:#fff}
-      .wrap{max-width:none;padding:0}
-      .hero,.panel,.info-card,.prompt-card{box-shadow:none}
-      .searchbar,.copy-btn{display:none !important}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>클로드 실습형 프롬프트 라이브러리</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --ink:#1a1f2b; --muted:#6b7280; --line:#e7e9ee;
+  --navy:#1f3864; --blue:#2e5496; --gyoan:#2e5496; --yesi:#0f9d76;
+  --gyoan-bg:#eaf1fb; --yesi-bg:#e6f6f0; --code:#f3f4f6;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Malgun Gothic","맑은 고딕",-apple-system,"Segoe UI",sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+
+/* header */
+header{background:linear-gradient(135deg,#1f3864,#2e5496);color:#fff;padding:44px 0 34px}
+header .wrap{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.01em}
+.lead{margin:0;font-size:15px;opacity:.92;max-width:640px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600}
+
+/* toolbar */
+.toolbar{position:sticky;top:0;z-index:20;background:rgba(246,247,249,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 0}
+.toolbar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1;min-width:200px;position:relative}
+.search input{width:100%;padding:11px 14px 11px 40px;border:1px solid var(--line);
+  border-radius:10px;font-size:15px;background:#fff;outline:none}
+.search input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,84,150,.12)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.45}
+.filters{display:flex;gap:6px}
+.chip{border:1px solid var(--line);background:#fff;color:var(--muted);
+  padding:9px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+.chip:hover{border-color:#c9cfda}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* session nav */
+.snav{display:flex;gap:6px;flex-wrap:wrap;padding:14px 0 2px}
+.snav a{font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;
+  padding:6px 12px;border-radius:8px;border:1px solid transparent}
+.snav a:hover{background:#eef1f6;color:var(--navy)}
+
+/* section */
+section{padding:22px 0 6px}
+.shead{display:flex;align-items:baseline;gap:12px;margin:0 0 14px;
+  padding-bottom:10px;border-bottom:2px solid var(--navy)}
+.snum{font-size:13px;font-weight:800;color:#fff;background:var(--navy);
+  padding:3px 10px;border-radius:7px;white-space:nowrap}
+.shead h2{margin:0;font-size:20px;font-weight:800}
+.shead .ssub{color:var(--muted);font-size:13px;font-weight:600}
+
+.subhead{font-size:12px;font-weight:800;letter-spacing:.03em;color:var(--muted);
+  margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.subhead::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* cards */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:16px;display:flex;flex-direction:column;gap:10px;transition:.15s}
+.card:hover{border-color:#cfd6e2;box-shadow:0 4px 18px rgba(20,30,60,.06)}
+.card .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card h3{margin:0;font-size:15px;font-weight:700;line-height:1.4}
+.num{font-size:11px;color:#aab;font-weight:700;flex:none}
+.badge{font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.badge.gyoan{background:var(--gyoan-bg);color:var(--gyoan)}
+.badge.yesi{background:var(--yesi-bg);color:var(--yesi)}
+.hint{margin:0;font-size:12.5px;color:var(--muted)}
+.code{position:relative;background:var(--code);border:1px solid #eceef2;border-radius:9px;
+  padding:12px 12px 12px;font-size:12.5px;line-height:1.55;white-space:pre-wrap;
+  font-family:"D2Coding","Consolas","Menlo",monospace;color:#232833;max-height:190px;overflow:auto}
+.cardfoot{display:flex;justify-content:flex-end}
+.copy{border:1px solid var(--line);background:#fff;color:var(--navy);font-weight:700;
+  font-size:12.5px;padding:7px 14px;border-radius:8px;cursor:pointer;transition:.15s}
+.copy:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.copy.done{background:var(--yesi);color:#fff;border-color:var(--yesi)}
+
+.empty{text-align:center;color:var(--muted);padding:40px;font-size:15px;display:none}
+footer{margin-top:30px;padding:24px 0 50px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.dot.gyoan{background:var(--gyoan)}.dot.yesi{background:var(--yesi)}
+.totop{position:fixed;right:18px;bottom:18px;background:var(--navy);color:#fff;border:none;
+  width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer;opacity:0;transition:.2s;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.totop.show{opacity:.92}
+</style>
 </head>
 <body>
+<header>
   <div class="wrap">
-    <section class="hero">
-      <p class="eyebrow">Claude Beginner Course · Practical Prompt Library</p>
-      <h1>클로드 초급과정 실습형 프롬프트 라이브러리</h1>
-      <p class="subtitle">교안에  나오는 실습 프롬프트를, 중소기업 실무자가 바로 복사해 쓰기 좋게 모았습니다. 교안 프롬프트 15개에 더해, 같은 원칙으로 실전 예시를 채운 추가 프롬프트 20개를 함께 담았습니다.</p>
-      <div class="meta">
-        <div class="box"><span class="label">대상</span><span class="value">클로드 초급 학습자 · 중소기업 실무자</span></div>
-        <div class="box"><span class="label">형태</span><span class="value">복사해 바로 쓰는 실전 프롬프트</span></div>
-        <div class="box"><span class="label">구성</span><span class="value">교안 15개 + 추가 20개</span></div>
-        <div class="box"><span class="label">사용 목적</span><span class="value">실무 · 복습 · 재사용</span></div>
-      </div>
-    </section>
-
-    <div class="grid">
-      <aside class="sidebar">
-        <div class="info-card">
-          <h3>커리큘럼 요약</h3>
-          <p>이미지에 보인 3개 모듈 구조를 기준으로 정리했습니다.</p>
-          <div class="pill-row">
-            <span class="pill">클로드 기초</span>
-            <span class="pill">에이전트 시작</span>
-            <span class="pill">에이전트 심화</span>
-          </div>
-          <ul>
-            <li>클로드 시작하기</li>
-            <li>클로드 에이전트 기능 이해</li>
-            <li>클로드 워크러 시작하기</li>
-            <li>클로드 스킬 이해</li>
-            <li>터미널과 클로드 코드 이해</li>
-          </ul>
-        </div>
-
-        <div class="info-card">
-          <h3>활용 포인트</h3>
-          <ul>
-            <li>수업 중 실습 지시문으로 바로 사용 가능</li>
-            <li>수강생 수준별로 난이도만 조정해 재사용 가능</li>
-            <li>HTML 검색 기능으로 주제별 필터링 가능</li>
-            <li>추후 PDF/PPT/노션 형태로 확장 가능</li>
-          </ul>
-        </div>
-      </aside>
-
-      <main class="panel">
-        <div class="panel-head">
-          <h2>커리큘럼 표</h2>
-        </div>
-        <div class="panel-body">
-          <table class="table">
-            <thead>
-              <tr>
-                <th style="width:18%">모듈</th>
-                <th style="width:28%">단원</th>
-                <th>세부내용</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><span class="module-tag">클로드 기초</span></td>
-                <td>
-                  <div class="unit">클로드 시작하기</div>
-                </td>
-                <td class="detail">클로드 시작, 검색·시각화 실습 및 프로젝트, 아티팩트 활용</td>
-              </tr>
-              <tr>
-                <td><span class="module-tag">에이전트 시작</span></td>
-                <td>
-                  <div class="unit">클로드 에이전트 기능 이해</div>
-                </td>
-                <td class="detail">에이전트 개념, 컨텍스트 및 프로젝트 구조 학습 및 실습</td>
-              </tr>
-              <tr>
-                <td rowspan="3"><span class="module-tag">에이전트 심화</span></td>
-                <td><div class="unit">클로드 워크러 시작하기</div></td>
-                <td class="detail">클로드 워크러 활용 방법 시연</td>
-              </tr>
-              <tr>
-                <td><div class="unit">클로드 스킬 이해</div></td>
-                <td class="detail">스킬 개념 학습 및 클로드 워커 내 업무용 스킬 제작 시연</td>
-              </tr>
-              <tr>
-                <td><div class="unit">터미널과 클로드 코드 이해</div></td>
-                <td class="detail">클로드 코드를 위한 터미널 사용법 및 에이전트 협업 방식 시연</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </main>
-    </div>
-
-    <section class="section panel" style="padding:22px;">
-      <div class="section-title">
-        <h2>실습형 프롬프트 라이브러리</h2>
-        <span>검색창에 키워드를 입력하면 관련 프롬프트만 보입니다.</span>
-      </div>
-      <div class="searchbar">
-        <input id="q" type="text" placeholder="예: 검색, 에이전트, 프로젝트, 스킬, 터미널" />
-        <div class="chip">Copy & Run</div>
-      </div>
-      <div class="legend">
-        <span class="legend-item"><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span> 교안에 실제로 실린 프롬프트 그대로 (1~15번)</span>
-        <span class="legend-item"><span class="source-tag added"><span class="dot"></span>추가 제안</span> 같은 원칙으로 실전 예시를 채워 새로 만든 것 (16~35번)</span>
-      </div>
-
-      <div class="prompt-grid" id="promptGrid">
-        <article class="prompt-card" data-source="curriculum" data-module="클로드 기초" data-keywords="검색 출처 확인필요 근거 자료 교안">
-          <div class="prompt-top"><h3>1. 검색하고 출처 확인하기</h3><span class="badge">클로드 기초</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 1-1 · S1-P01</p>
-          <p>최근 바뀐 제도·요율·동향처럼 검색이 필요한 주제를, 출처까지 붙여 3줄로 정리받는 프롬프트입니다. 회사 내부 정보는 넣지 말고 공개된 범위로만 물어봅니다.</p>
-          <div class="prompt-box"><pre>[주제]에 대해 최근 바뀐 내용을 찾아 3줄로 정리해줘.
-
-각 줄마다 어느 자료에서 나온 내용인지 출처를 함께 표시해줘.
-
-검색으로 확인되지 않은 내용은 넣지 말고, 확실하지 않으면 "확인 필요"라고 써줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="클로드 기초" data-keywords="검색 출처 요약 추측 보강 확인필요 교안">
-          <div class="prompt-top"><h3>2. 검색 결과가 부족할 때 덧붙이는 한 줄</h3><span class="badge">클로드 기초</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 1-1 보강 · 13p</p>
-          <p>검색 결과에 출처가 없거나, 너무 길거나, 추측이 섞였을 때 바로 이어 보내는 짧은 지시문 3종입니다. 상황에 맞는 한 줄만 골라 쓰면 됩니다.</p>
-          <div class="prompt-box"><pre>(출처가 없을 때)
-각 문장이 어느 자료에서 나왔는지 표시해줘.
-
-(너무 길 때)
-핵심 3개만, 한 문장으로 줄여줘.
-
-(추측이 섞였을 때)
-검색으로 확인되지 않은 내용은 지워줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="클로드 기초" data-keywords="표 차트 아티팩트 시각화 별도창 확인필요 교안">
-          <div class="prompt-top"><h3>3. 표와 차트 만들기</h3><span class="badge">클로드 기초</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 1-2 · S1-P02</p>
-          <p>이번 주 처리한 업무 등을 4열 표로 만들어 아티팩트(별도 창)로 받고, 이어서 막대 차트까지 그리는 프롬프트입니다.</p>
-          <div class="prompt-box"><pre>내가 이번 주에 처리한 일을 정리하고 싶어.
-아래 내용을 [업무 / 처리 건수 / 소요 시간 / 상태] 4열 표로 만들어 별도 창에 띄워줘.
-내가 적지 않은 값은 임의로 채우지 말고 "확인 필요"라고 표시해줘.
-
-[내용]
-(여기에 3~4줄로 적기)
-
-── 표가 나오면 이어서 보내기 ──
-위 표를 막대 차트로 그려줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="클로드 기초" data-keywords="프로젝트 지침 규칙 말투 형식 금지 수치 교안">
-          <div class="prompt-top"><h3>4. 프로젝트 지침 붙여넣기</h3><span class="badge">클로드 기초</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 1-3 · 52p</p>
-          <p>프로젝트를 만들 때 지침 칸에 그대로 붙여넣는 기본 지침입니다. 이후 모든 대화에서 말투·형식·금지 규칙이 자동으로 지켜집니다.</p>
-          <div class="prompt-box"><pre>[역할] 사무 업무를 돕는 도우미.
-[말투] 한국어 존댓말. 쉬운 표현.
-[형식] 표를 만들 때는 근거 열을 포함한다.
-[금지]
-- 내가 주지 않은 값을 지어내지 않는다
-- 확실하지 않으면 "확인 필요"로 표시한다
-- 실제 회사명·고객명·금액은 다루지 않는다
-[수치] 숫자와 날짜는 원문 그대로 옮기고, 계산했으면 계산식을 함께 보여준다.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 시작" data-keywords="컨텍스트 지침 지식 대화 네층 확인 교안">
-          <div class="prompt-top"><h3>5. AI가 지금 무엇을 보고 있는지 확인하기</h3><span class="badge">에이전트 시작</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 2-1 · S2-P01</p>
-          <p>결과가 이상할 때, AI가 지금 참고하는 정보(지침·자료·대화·이번 메시지)를 네 층으로 나눠 확인하는 프롬프트입니다. 프로젝트 안에서 실행합니다.</p>
-          <div class="prompt-box"><pre>지금 네가 참고할 수 있는 정보를 아래 네 가지로 나눠서 알려줘.
-1) 프로젝트 지침에 적힌 규칙
-2) 프로젝트에 올라온 자료
-3) 이 대화에서 지금까지 나온 내용
-4) 방금 내가 보낸 메시지
-
-각 항목에 실제로 무엇이 들어 있는지 적고, 비어 있으면 "없음"이라고 써줘.
-네가 볼 수 없는 것도 함께 알려줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 시작" data-keywords="지침 보강 업무 보완 규칙 교안">
-          <div class="prompt-top"><h3>6. 지침 보강하기</h3><span class="badge">에이전트 시작</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 2-2 · S2-P02</p>
-          <p>지금 쓰는 지침을 내 업무에 맞게 점검받는 프롬프트입니다. 전체를 새로 쓰지 않고 빠진 부분·보완 문구만 받는 것이 핵심입니다.</p>
-          <div class="prompt-box"><pre>아래는 내 프로젝트 지침이야.
-(1교시에서 넣은 지침을 붙여넣기)
-
-내 업무는 [업무 설명]이야.
-이 지침에서
-1) 빠져 있는 항목
-2) 너무 넓어서 지켜지기 어려운 항목
-을 짚어 주고, 보완 문구만 따로 제시해줘.
-전체를 다시 쓰지는 마.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 시작" data-keywords="위임 후보 반복업무 질문 진단 표 교안">
-          <div class="prompt-top"><h3>7. 위임 후보 골라내기</h3><span class="badge">에이전트 시작</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 2-3 · S2-P03</p>
-          <p>AI가 바로 답을 만들지 않고, 먼저 질문 5개로 내 업무를 파악한 뒤 위임 후보 3개를 위험·확인 지점과 함께 표로 골라주는 2단계 프롬프트입니다.</p>
-          <div class="prompt-box"><pre>나는 사무직으로 일하고 있어.
-지금 바로 답을 만들지 말고, 내가 반복하는 업무 중에서
-AI에게 맡기기 좋은 업무를 고를 수 있도록 질문을 5개만 해줘.
-질문은 번호를 붙여 한 번에 보여주고, 내가 답하기 전에는 다음 단계로 넘어가지 마.
-
-── 질문에 답한 뒤 이어서 보내기 ──
-내 답변을 바탕으로 위임 후보 3개만 골라줘.
-① 적합 이유 ② 위험 ③ 사람 확인 지점을 표로 정리해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 시작" data-keywords="환각 방지 확인필요 검증 추측 교안">
-          <div class="prompt-top"><h3>8. 환각 방지 한 줄 붙이기</h3><span class="badge">에이전트 시작</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 · 22p</p>
-          <p>AI가 그럴듯하게 지어내는 것을 막는 가장 짧은 문구입니다. 어떤 요청이든 마지막에 한 줄 덧붙이면 됩니다.</p>
-          <div class="prompt-box"><pre>확실하지 않은 내용은 "확인 필요"라고 표시해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 시작" data-keywords="회의록 할일 결정사항 담당 기한 표 교안">
-          <div class="prompt-top"><h3>9. 회의록에서 할 일 뽑기</h3><span class="badge">에이전트 시작</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 · 위임 실전 35p</p>
-          <p>회의록에서 '결정된 것'과 '할 일'을 나누고, 담당·기한이 없는 항목은 확인 필요로 남기는 실전 프롬프트입니다.</p>
-          <div class="prompt-box"><pre>아래 회의록에서 '결정된 것'과 '할 일'을 나눠서 정리해줘.
-할 일은 [내용 / 담당 / 기한] 3열 표로 만들고, 자료에 없는 내용은 넣지 마.
-기한이 적혀 있지 않으면 "확인 필요"라고 써줘.
-
-[회의록]
-(여기에 회의록 붙여넣기)</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 시작" data-keywords="요약 보고 팀장 3줄 원문 숫자 교안">
-          <div class="prompt-top"><h3>10. 자료를 보고용으로 요약하기</h3><span class="badge">에이전트 시작</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 · 위임 실전 35p</p>
-          <p>긴 자료를 팀장 보고용 3줄로 요약하는 프롬프트입니다. 숫자·날짜는 원문 그대로, 없는 내용은 넣지 않게 조건을 답니다.</p>
-          <div class="prompt-box"><pre>아래 자료를 팀장 보고용으로 3줄로 요약해줘.
-숫자와 날짜는 원문 그대로 쓰고, 자료에 없는 내용은 넣지 마.
-
-[자료]
-(여기에 자료 붙여넣기)</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 시작" data-keywords="메일 거래처 납기 지연 사과 존댓말 교안">
-          <div class="prompt-top"><h3>11. 거래처 안내 메일 쓰기</h3><span class="badge">에이전트 시작</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 · 위임 실전 35p</p>
-          <p>거래처에 납기 지연 등을 알리는 메일을 정해진 순서·분량·말투로 쓰는 실전 프롬프트입니다. 상황만 바꿔 재사용할 수 있습니다.</p>
-          <div class="prompt-box"><pre>거래처에 납기 지연을 알리는 메일을 써줘.
-사과 → 지연 사유 → 변경된 일정 → 요청사항 순서로,
-5문장 이내, 정중한 존댓말로 써줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 심화" data-keywords="파일 자료 첨부 표 5열 정리 별도창 교안">
-          <div class="prompt-top"><h3>12. 올린 자료를 표로 정리하기</h3><span class="badge">에이전트 심화</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 3-1 · S3-P01</p>
-          <p>첨부한 파일을 읽어 5열 표로 정리하고 별도 창으로 받는 프롬프트입니다. 빈칸은 확인 필요로, 합계는 계산식과 함께 표시됩니다.</p>
-          <div class="prompt-box"><pre>올린 자료를 읽고 [항목 / 내용 / 담당 / 기한 / 상태] 5열 표로 정리해줘.
-자료에 없는 값은 임의로 채우지 말고 "확인 필요"라고 표시해줘.
-숫자와 날짜는 원문 그대로 옮기고, 합계를 냈으면 계산식도 함께 보여줘.
-표는 별도 창으로 만들어줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 심화" data-keywords="파일 엑셀 다운로드 스프레드시트 검증 교안">
-          <div class="prompt-top"><h3>13. 표를 엑셀 파일로 받기</h3><span class="badge">에이전트 심화</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 3-2 · S3-P02</p>
-          <p>정리한 표를 엑셀 파일로 내려받는 프롬프트입니다. 파일을 받은 뒤에는 반드시 열어 행 수와 표본 2건을 원본과 대조합니다.</p>
-          <div class="prompt-box"><pre>위 표를 엑셀 파일로 만들어줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 심화" data-keywords="스킬 회의록 할일 호출 자동 교안">
-          <div class="prompt-top"><h3>14. 스킬로 회의록 정리하기</h3><span class="badge">에이전트 심화</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 4-1 · S4-P01</p>
-          <p>등록해 둔 스킬을 이름을 말하지 않고 불러내는 프롬프트입니다. '정리해줘'만 해도 스킬에 적힌 형식대로 표가 나오면 성공입니다.</p>
-          <div class="prompt-box"><pre>아래 회의록에서 할 일을 정리해줘.
-
-[회의록]
-(회의록 붙여넣기)</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-        <article class="prompt-card" data-source="curriculum" data-module="에이전트 심화" data-keywords="스킬 제작 다섯칸 사양 SKILL 등록 교안">
-          <div class="prompt-top"><h3>15. 내 업무용 스킬 만들기</h3><span class="badge">에이전트 심화</span><span class="source-tag curriculum"><span class="dot"></span>교안 기반</span></div>
-          <p class="ref-line">교안 실습 4-2 · S4-P02</p>
-          <p>위임 후보로 고른 업무를 재사용 가능한 스킬로 만드는 프롬프트입니다. AI가 먼저 빈칸 표를 주면 내가 채우고, 그 내용으로 SKILL.md를 완성합니다.</p>
-          <div class="prompt-box"><pre>내가 반복하는 업무 하나를 Claude 스킬로 만들고 싶어.
-지금 바로 만들지 말고, 다섯 칸을 내가 채울 수 있도록 빈칸이 있는 표를 먼저 보여줘.
-언제 · 입력 · 절차 · 출력 · 금지
-
-내가 표를 채우기 전에는 초안을 쓰지 마.
-표를 채운 뒤 이어서, 채운 내용으로 SKILL.md를 작성해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="클로드 기초" data-keywords="모델 노력 한도 설정 추가">
-          <div class="prompt-top"><h3>16. 모델·노력 설정 이해하기</h3><span class="badge">클로드 기초</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>모델(Sonnet/Haiku 등)과 노력 단계가 결과와 한도에 어떤 영향을 주는지, 내 업무에는 어떤 조합이 맞는지 클로드에게 직접 판단을 맡겨 보는 실습입니다.</p>
-          <div class="prompt-box"><pre>나는 견적서 초안을 반복해서 작성하는 일을 하고 있어.
-아래 두 가지 상황에 각각 어떤 모델과 노력 단계를 쓰면 좋을지 표로 추천해줘.
-
-1) 매주 같은 형식으로 반복하는 단순 정리 작업
-2) 여러 자료를 대조해서 최종 견적을 확정하는 작업
-
-표는 [상황 / 추천 모델 / 추천 노력 단계 / 이유] 4열로 만들어줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="클로드 기초" data-keywords="검색 필요 판단 여부 추가">
-          <div class="prompt-top"><h3>17. 검색이 필요한 질문인지 판단하기</h3><span class="badge">클로드 기초</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>검색을 켤지 말지 스스로 고민될 때, 클로드에게 먼저 판단을 시켜보는 실습입니다. 한도를 아끼는 습관을 들이는 데 도움이 됩니다.</p>
-          <div class="prompt-box"><pre>아래 세 가지 질문 중 어떤 것이 검색이 꼭 필요하고, 어떤 것이 필요 없는지 구분해줘.
-이유도 한 줄씩 붙여줘.
-
-1) 2026년 최저임금이 얼마인지 알려줘.
-2) 보고서에서 자주 쓰는 '컨센서스'라는 단어가 무슨 뜻인지 알려줘.
-3) 우리 회사 경쟁사인 [회사명]의 최근 신제품 소식을 알려줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="클로드 기초" data-keywords="파일 다운로드 엑셀 검증 추가">
-          <div class="prompt-top"><h3>18. 표를 엑셀 파일로 받고 검증하기</h3><span class="badge">클로드 기초</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>화면에 나온 표를 실제 파일로 내려받아, 원본과 대조하는 순서까지 포함한 구체적인 실습입니다.</p>
-          <div class="prompt-box"><pre>아래 내용을 [거래처명 / 품목 / 수량 / 단가 / 합계] 5열 표로 만들어 별도 창에 띄워줘.
-합계는 계산식도 함께 보여줘. 내가 적지 않은 값은 "확인 필요"로 표시해줘.
-
-- 대한상사 / 사무용 의자 / 20개 / 45,000원
-- 한빛물산 / 모니터 받침대 / 15개 / 12,000원
-- 서울테크 / 키보드 / 30개 / (단가 미정)
-
-표가 확인되면, 위 표를 엑셀 파일로 만들어줘.
-파일을 받으면 행 수 3개와 합계 값을 원본과 직접 대조해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="클로드 기초" data-keywords="프로젝트 지침 4원칙 추가">
-          <div class="prompt-top"><h3>19. 프로젝트 지침, 4원칙 반영해서 만들기</h3><span class="badge">클로드 기초</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>개인정보 금지, 수치 재확인 등 '입력 전 4원칙'을 실제 지침 문장으로 바꿔서 프로젝트에 붙여넣을 수 있게 만드는 실습입니다.</p>
-          <div class="prompt-box"><pre>나는 [영업팀 / 견적·계약 관리] 업무를 맡고 있어.
-아래 4가지 원칙을 반영해서, 내 프로젝트 지침으로 바로 붙여넣을 수 있는 문장을 만들어줘.
-
-1) 실제 고객명·금액·계약 조건은 절대 넣지 않는다
-2) 확실하지 않은 값은 "확인 필요"로 표시한다
-3) 숫자·날짜는 원문 그대로 옮기고 계산식을 함께 보여준다
-4) 외부 발송·게시와 관련된 작업은 승인 없이 실행하지 않는다
-
-[역할] [말투] [형식] [금지] [수치] 다섯 항목으로 나눠서 정리해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 시작" data-keywords="질문형 위임형 구분 추가">
-          <div class="prompt-top"><h3>20. 질문형과 위임형 구분해서 요청하기</h3><span class="badge">에이전트 시작</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>같은 업무를 질문형과 위임형으로 각각 요청했을 때 결과가 어떻게 달라지는지 직접 비교해 보는 실습입니다.</p>
-          <div class="prompt-box"><pre>같은 업무를 두 가지 방식으로 각각 요청해볼게. 두 결과의 차이를 나중에 설명해줘.
-
-[질문형] 신입사원 온보딩 자료에 뭘 넣으면 좋을지 알려줘.
-
-[위임형] 신입사원 온보딩 체크리스트를 만들어줘.
-항목은 [분류 / 할 일 / 담당 / 기한] 4열 표로 만들고,
-기한이 정해지지 않은 항목은 "확인 필요"로 표시해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 시작" data-keywords="환각 방지 확인필요 추가">
-          <div class="prompt-top"><h3>21. 환각 방지 문구 실전 적용하기</h3><span class="badge">에이전트 시작</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>빈칸이 있는 실제 업무 자료를 주고, "확인 필요" 문구를 넣었을 때와 안 넣었을 때 결과가 어떻게 달라지는지 비교하는 실습입니다.</p>
-          <div class="prompt-box"><pre>아래 신청자 명단을 표로 정리해줘. 담당자와 처리 상태가 빈칸인 항목이 있어.
-
-- 김민준 / 연차 신청 / 담당자 미정 / 처리 상태 미정
-- 이서연 / 출장비 정산 / 담당 박과장 / 처리 상태 미정
-- 최도윤 / 장비 구매 요청 / 담당자 미정 / 처리 완료
-
-빈칸을 절대로 임의로 채우지 말고, 비어 있는 칸은 모두 "확인 필요"라고 써줘.
-표 아래에 "확인 필요"가 몇 건인지도 숫자로 알려줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 시작" data-keywords="컨텍스트 네층 확인 추가">
-          <div class="prompt-top"><h3>22. 지금 클로드가 무엇을 보고 있는지 확인하기</h3><span class="badge">에이전트 시작</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>컨텍스트 네 층(지침·지식·대화·이번 메시지)을 실제로 구분해서 보여 달라고 요청하는, 교안 실습을 조금 더 자세히 풀어 쓴 버전입니다.</p>
-          <div class="prompt-box"><pre>지금 네가 나에 대해 참고할 수 있는 정보를 아래 네 가지로 나눠서 알려줘.
-
-1) 이 프로젝트 지침에 적힌 규칙 (있다면 실제 문장을 그대로 보여줘)
-2) 이 프로젝트에 올라온 자료 (있다면 파일명을 알려줘)
-3) 이 대화에서 지금까지 나온 내용 요약
-4) 방금 내가 보낸 이 메시지
-
-각 항목이 비어 있으면 "없음"이라고 써주고,
-너가 볼 수 없는 것(다른 대화, 회사 시스템 자료 등)도 함께 알려줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 시작" data-keywords="지침 보강 업무별 추가">
-          <div class="prompt-top"><h3>23. 우리 팀 지침, 빠진 부분 찾아 보강하기</h3><span class="badge">에이전트 시작</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>실제 지침 예시를 붙여넣고, 부족한 부분만 짚어 문구를 받는 구체적인 실습입니다. 전체를 새로 받지 않는 것이 핵심입니다.</p>
-          <div class="prompt-box"><pre>아래는 내 프로젝트 지침이야.
-
-[역할] 사무 업무를 돕는 도우미.
-[말투] 한국어 존댓말.
-[금지] 회사 정보를 지어내지 않는다.
-
-내 업무는 "거래처별 월간 발주 현황을 정리하고 보고서를 만드는 일"이야.
-이 지침에서
-1) 빠져 있는 항목
-2) 너무 넓어서 지켜지기 어려운 항목
-을 짚어주고, 보완 문구만 따로 제시해줘. 전체를 다시 쓰지는 마.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 시작" data-keywords="위임 후보 진단 업무 추가">
-          <div class="prompt-top"><h3>24. 내 업무 중 위임 후보 찾아보기</h3><span class="badge">에이전트 시작</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>맡겨도 되는 업무의 4가지 조건(반복성·정형성·판단 기준·복구 가능성)을 적용해, 실제 업무 후보를 골라 보는 실습입니다.</p>
-          <div class="prompt-box"><pre>나는 사무직으로 일하고 있고, 아래와 같은 업무를 반복해서 하고 있어.
-
-- 매주 거래처별 발주 내역을 정리해서 표로 만든다
-- 매달 팀 회의록에서 결정 사항과 할 일을 뽑는다
-- 가끔 신규 거래처와의 계약 조건을 최종 확정한다
-
-이 중에서 "반복된다 / 입력이 정해져 있다 / 판단 기준을 말로 쓸 수 있다 / 틀려도 되돌릴 수 있다"
-네 가지 조건에 맞는 위임 후보를 골라주고, 조건별로 왜 맞는지·안 맞는지 표로 정리해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="사람확인지점 휴먼인더루프 추가">
-          <div class="prompt-top"><h3>25. 사람이 확인해야 하는 지점 표로 만들기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>이해·계획·실행·검증·확정 5단계 중 어디에 사람이 반드시 들어가야 하는지, 내 업무에 맞춰 구체적으로 표로 받는 실습입니다.</p>
-          <div class="prompt-box"><pre>"거래처별 월간 발주 현황 정리 및 보고서 작성" 업무를
-이해 / 계획 / 실행 / 검증 / 확정 5단계로 나눠줘.
-
-각 단계마다
-1) AI가 하는 일
-2) 사람이 반드시 확인해야 하는 일
-3) 이 단계를 건너뛰면 생기는 위험
-을 표로 정리해줘. 특히 '확정' 단계에는 누가 책임지고 승인하는지 적을 자리를 비워둬.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="회의록 할일 추출 추가">
-          <div class="prompt-top"><h3>26. 회의록에서 할 일 뽑아내기 (실전 예시)</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>실제와 비슷한 회의록 텍스트를 붙여넣어, 결정 사항과 할 일을 나누고 담당·기한이 빠진 부분까지 확인하는 실습입니다.</p>
-          <div class="prompt-box"><pre>아래 회의록에서 '결정된 것'과 '할 일'을 나눠서 정리해줘.
-할 일은 [내용 / 담당 / 기한] 3열 표로 만들고,
-회의록에 없는 내용은 넣지 마. 담당이나 기한이 적혀 있지 않으면 "확인 필요"라고 써줘.
-
-[회의록]
-오늘 회의에서는 3분기 마케팅 예산안을 다음 주까지 재검토하기로 했다.
-김대리가 경쟁사 프로모션 자료를 조사하기로 했다.
-신제품 출시일은 아직 미정이며 다음 회의에서 다시 논의한다.
-박과장은 협력업체 견적서를 이번 주 금요일까지 받기로 했다.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="문서취합 요약 대상별 추가">
-          <div class="prompt-top"><h3>27. 여러 자료를 대상별로 요약하기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>같은 자료를 누가 읽는지에 따라 다른 형식으로 요약받는, '누가·어떤 모양·하지 말 것' 세 가지를 채워보는 실습입니다.</p>
-          <div class="prompt-box"><pre>아래 자료를 팀장 보고용으로 3줄 요약해줘.
-숫자와 날짜는 원문 그대로 쓰고, 자료에 없는 내용은 추측해서 넣지 마.
-
-[자료]
-이번 달 온라인몰 매출은 전월 대비 12% 증가한 3억 2천만원이다.
-반품률은 4.1%로 지난달과 비슷한 수준을 유지했다.
-신규 회원 가입자 수는 1,850명으로 목표치 2,000명에 다소 못 미쳤다.
-
-이어서, 같은 자료를 협력업체에 공유할 메일 형식으로도 5문장 이내, 정중한 존댓말로 다시 써줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="파일검증 원본대조 체크리스트 추가">
-          <div class="prompt-top"><h3>28. 받은 파일 검증 체크리스트 만들기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>파일을 받은 뒤 무엇을, 어떤 순서로 확인해야 하는지 나만의 체크리스트로 정리해 두는 실습입니다.</p>
-          <div class="prompt-box"><pre>내가 클로드에게 표나 파일을 받을 때마다 바로 확인할 수 있는
-"파일 검증 체크리스트"를 만들어줘.
-
-아래 항목을 반드시 포함해줘.
-1) 원본 건수와 파일의 행 수가 맞는지
-2) 숫자·날짜를 원문에서 표본 2건 이상 대조했는지
-3) "확인 필요" 표시가 몇 건인지 세어 봤는지
-4) 0건이면 오히려 의심해 봤는지
-
-체크리스트는 인쇄해서 책상에 붙여둘 수 있게 간단한 문장으로 만들어줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="스킬 호출 배포 사용 추가">
-          <div class="prompt-top"><h3>29. 배포된 스킬, 이름 말하지 않고 불러보기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>스킬을 등록한 뒤, 스킬 이름을 언급하지 않고도 자연스럽게 호출되는지 확인하는 실습입니다.</p>
-          <div class="prompt-box"><pre>아래 회의록에서 할 일을 정리해줘.
-
-[회의록]
-오늘 회의에서는 신규 채용 공고를 이번 주 내로 게시하기로 했다.
-인사팀 이과장이 공고 초안을 작성하고, 채용 사이트 등록은 다음 주 월요일까지 완료한다.
-면접 일정은 아직 확정되지 않았다.
-
-(스킬 이름은 말하지 않았지만, 담당·기한 열이 있는 표와 "확인 필요" 표시가
-자동으로 나온다면 등록한 스킬이 제대로 불려 나온 것입니다.)</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="스킬 다섯칸 사양 작성 추가">
-          <div class="prompt-top"><h3>30. 내 스킬, 다섯 칸 사양으로 채우기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>언제·입력·절차·출력·금지 다섯 칸을 실제 업무로 채워, 완성형 SKILL.md 초안을 받아보는 구체적인 실습입니다.</p>
-          <div class="prompt-box"><pre>"거래처별 발주 내역 정리" 업무를 클로드 스킬로 만들고 싶어.
-지금 바로 만들지 말고, 아래 다섯 칸을 내가 채울 수 있도록 빈칸 표를 먼저 보여줘.
-
-- 언제: 이 스킬을 쓰는 상황과 호출 단서 단어
-- 입력: 무엇을 받아서 시작하는지
-- 절차: 어떤 순서로 처리하는지 (3~6단계)
-- 출력: 결과의 형태와 열 이름
-- 금지: 하면 안 되는 것
-
-내가 표를 채우기 전에는 초안을 쓰지 마. 표를 채운 뒤 이어서 SKILL.md를 작성해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="스킬 설명 description 다듬기 추가">
-          <div class="prompt-top"><h3>31. 스킬 설명(description) 다듬기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>설명이 흐리면 스킬이 불려 나오지 않습니다. 실제 설명 문구를 주고 더 명확하게 다듬어 받는 실습입니다.</p>
-          <div class="prompt-box"><pre>아래는 내가 만든 스킬의 설명(description) 문구야.
-
-"문서를 잘 정리해 줍니다."
-
-이 설명이 왜 불려 나오기 어려운지 짚어주고,
-"무슨 일을 하는지 / 언제 쓰는지 / 어떤 말이 나오면 쓰는지" 세 가지가
-분명히 들어가도록 다시 써줘.
-업무는 "거래처별 발주 내역을 표로 정리하는 것"이야.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="스킬 호출시험 시나리오 추가">
-          <div class="prompt-top"><h3>32. 스킬 호출 시험 시나리오 만들기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>스킬 등록 후 정상·인접·무관 요청 문장을 미리 준비해, 의도한 대로 호출되는지 직접 시험해 보는 실습입니다.</p>
-          <div class="prompt-box"><pre>내가 만든 "거래처별 발주 내역 정리" 스킬을 시험해 보려고 해.
-아래 네 가지 성격의 요청 문장을 각각 1개씩 만들어줘. 스킬 이름은 넣지 마.
-
-1) 정상 요청 (내 업무 표현으로) → 호출되어야 함
-2) 정상 요청 (다른 표현으로) → 호출되어야 함
-3) 인접 요청 (비슷하지만 다른 업무) → 호출되면 안 됨
-4) 무관 요청 (전혀 다른 업무) → 호출되면 안 됨
-
-각 문장 옆에 "왜 호출되어야/되면 안 되는지" 이유도 한 줄씩 써줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="터미널 명령 이해 추가">
-          <div class="prompt-top"><h3>33. 터미널 명령, 탐색기에 빗대어 이해하기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>pwd, ls, cd 같은 조회 명령이 낯선 사무직 수강생을 위해, 익숙한 파일 탐색기 동작에 빗댄 설명을 받는 실습입니다.</p>
-          <div class="prompt-box"><pre>나는 컴퓨터 폴더/파일 탐색기는 익숙한데 터미널은 처음이야.
-pwd, ls, cd, cd .., exit 다섯 개 명령을 각각
-"내가 평소 마우스로 하던 행동" 한 가지에 빗대어 한 줄씩 설명해줘.
-
-그리고 이 다섯 개는 모두 "조회 전용"이라서 반복해서 쳐도
-아무것도 바뀌지 않는다는 점도 강조해서 알려줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="계획모드 diff 승인 추가">
-          <div class="prompt-top"><h3>34. Plan 모드와 diff 승인, 왜 필요한지 이해하기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>클로드 코드의 승인 절차(Plan 모드 → diff 검토 → 승인)가 왜 안전장치인지, 실무자 입장에서 이해하기 쉽게 설명받는 실습입니다.</p>
-          <div class="prompt-box"><pre>클로드 코드를 처음 쓰는 사무직 직원에게 설명하듯이,
-"Plan 모드"와 "diff 승인"이 왜 필요한지 설명해줘.
-
-특히 아래 질문에 답하는 형태로 정리해줘.
-1) 승인하기 전까지 실제로 파일이 바뀌는가?
-2) diff를 보지 않고 바로 승인하면 어떤 위험이 있는가?
-3) "속도"가 아니라 "통제"가 핵심이라는 말은 무슨 뜻인가?</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-
-<article class="prompt-card" data-source="added" data-module="에이전트 심화" data-keywords="역할분해 단계 순차 추가">
-          <div class="prompt-top"><h3>35. 업무를 3단계로 나눠 순차 진행하기</h3><span class="badge">에이전트 심화</span><span class="source-tag added"><span class="dot"></span>추가 제안</span></div>
-          <p>한 번에 전부 시키는 대신, 단계마다 승인 지점을 두고 진행하는 순차 협업 방식을 실제 업무로 연습하는 실습입니다.</p>
-          <div class="prompt-box"><pre>"이번 달 거래처별 발주 내역 정리 및 보고서 작성" 업무를
-아래처럼 3단계로 나눠서 순서대로 진행해줘. 각 단계가 끝나면 나에게 확인을 받고 다음 단계로 넘어가.
-
-1단계: 발주 내역을 [거래처 / 품목 / 수량 / 금액] 표로 정리 (빈칸은 "확인 필요")
-2단계: (내가 1단계를 승인하면) 표를 바탕으로 보고서 초안 작성
-3단계: (내가 2단계를 승인하면) 보고서의 숫자를 표와 대조해서 검증
-
-지금은 1단계만 진행해줘.</pre></div>
-          <button class="copy-btn" onclick="copyPrompt(this)">프롬프트 복사</button>
-        </article>
-      </div>
-      <div class="footer-note">교안 기반(1~15번)은 케어캠프 교안에 실제로 실린 프롬프트를 그대로 옮긴 것이고, 추가 제안(16~35번)은 같은 원칙(확인 필요·출처·회사 정보 금지)으로 실전 업무 예시를 채워 새로 만든 것입니다. 각 카드의 [ ] 부분만 내 업무 내용으로 바꿔 바로 복사해 쓰시면 됩니다. ※ 실제 회사명·고객명·금액 등은 입력하지 않습니다.</div>
-    </section>
+    <div class="eyebrow">Claude Practical Agent Course</div>
+    <h1>클로드 실습형 프롬프트 라이브러리</h1>
+    <p class="lead">중소기업 실무자가 바로 복사해 쓰는 프롬프트 모음입니다. 교시별로 정리했고, 각 교시 끝에 실무 예시를 더했습니다.</p>
+    <div class="stats" id="stats"></div>
   </div>
+</header>
 
-  <script>
-    const q = document.getElementById('q');
-    const cards = [...document.querySelectorAll('.prompt-card')];
-    q?.addEventListener('input', () => {
-      const term = q.value.trim().toLowerCase();
-      cards.forEach(card => {
-        const hay = (card.innerText + ' ' + card.dataset.module + ' ' + (card.dataset.keywords || '')).toLowerCase();
-        card.style.display = hay.includes(term) ? '' : 'none';
+<div class="toolbar">
+  <div class="wrap">
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" type="text" placeholder="키워드로 검색 (예: 회의록, 지침, 엑셀, 스킬)">
+    </div>
+    <div class="filters">
+      <button class="chip on" data-f="all">전체</button>
+      <button class="chip" data-f="교안">교안용</button>
+      <button class="chip" data-f="예시">예시용</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="snav" id="snav"></nav>
+  <div id="root"></div>
+  <div class="empty" id="empty">검색 결과가 없습니다.</div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="legend">
+      <span><i class="dot gyoan"></i>교안용 — 교안에 실제로 실린 프롬프트</span>
+      <span><i class="dot yesi"></i>예시용 — 실무 활용을 위해 더한 예시</span>
+    </div>
+    각 프롬프트의 <b>[ ]</b> 부분만 본인 업무로 바꿔 복사해 쓰세요. 실제 회사명·고객명·금액 등은 입력하지 않습니다.
+  </div>
+</footer>
+<button class="totop" id="totop">↑</button>
+
+<script>
+const DATA={"sessions": [{"no": 1, "title": "클로드 시작하기", "sub": "검색·아티팩트·프로젝트"}, {"no": 2, "title": "클로드 에이전트 이해", "sub": "위임·컨텍스트·지침"}, {"no": 3, "title": "클로드 코워크 시작하기", "sub": "파일 처리·폴더 단위 작업"}, {"no": 4, "title": "클로드 스킬 이해", "sub": "스킬 제작·등록·호출"}, {"no": 5, "title": "터미널과 클로드 코드", "sub": "명령줄·diff 승인·협업"}], "prompts": [{"s": 1, "t": "교안", "title": "검색하고 출처 확인하기", "hint": "검색이 필요한 주제를 출처와 함께 3줄로.", "p": "[주제]에 대해 최근 바뀐 내용을 찾아 3줄로 정리해줘.\n각 줄마다 어느 자료에서 나온 내용인지 출처를 함께 표시해줘.\n검색으로 확인되지 않은 내용은 넣지 말고, 확실하지 않으면 \"확인 필요\"라고 써줘.", "n": 1}, {"s": 1, "t": "교안", "title": "검색 결과가 부족할 때 덧붙이는 한 줄", "hint": "상황에 맞는 한 줄만 골라 이어 보내기.", "p": "(출처가 없을 때)\n각 문장이 어느 자료에서 나왔는지 표시해줘.\n\n(너무 길 때)\n핵심 3개만, 한 문장으로 줄여줘.\n\n(추측이 섞였을 때)\n검색으로 확인되지 않은 내용은 지워줘.", "n": 2}, {"s": 1, "t": "교안", "title": "표와 차트 만들기", "hint": "4열 표를 별도 창으로, 이어서 막대 차트.", "p": "내가 이번 주에 처리한 일을 정리하고 싶어.\n아래 내용을 [업무 / 처리 건수 / 소요 시간 / 상태] 4열 표로 만들어 별도 창에 띄워줘.\n내가 적지 않은 값은 임의로 채우지 말고 \"확인 필요\"라고 표시해줘.\n\n[내용]\n(여기에 3~4줄로 적기)\n\n── 표가 나오면 이어서 ──\n위 표를 막대 차트로 그려줘.", "n": 3}, {"s": 1, "t": "교안", "title": "프로젝트 지침 붙여넣기", "hint": "프로젝트 지침 칸에 그대로 붙여넣는 기본 지침.", "p": "[역할] 사무 업무를 돕는 도우미.\n[말투] 한국어 존댓말. 쉬운 표현.\n[형식] 표를 만들 때는 근거 열을 포함한다.\n[금지]\n- 내가 주지 않은 값을 지어내지 않는다\n- 확실하지 않으면 \"확인 필요\"로 표시한다\n- 실제 회사명·고객명·금액은 다루지 않는다\n[수치] 숫자와 날짜는 원문 그대로 옮기고, 계산했으면 계산식을 함께 보여준다.", "n": 4}, {"s": 1, "t": "예시", "title": "모델·노력 조합 추천받기", "hint": "상황별로 어떤 모델·노력이 맞는지 표로.", "p": "나는 견적서 초안을 반복해서 작성하는 일을 하고 있어.\n아래 두 상황에 각각 어떤 모델과 노력 단계를 쓰면 좋을지 [상황 / 추천 모델 / 추천 노력 / 이유] 표로 추천해줘.\n1) 매주 같은 형식으로 반복하는 단순 정리 작업\n2) 여러 자료를 대조해 최종 견적을 확정하는 작업", "n": 5}, {"s": 1, "t": "예시", "title": "검색이 필요한 질문인지 판단하기", "hint": "검색을 켤지 스스로 판단시켜 한도 아끼기.", "p": "아래 세 질문 중 어떤 것이 검색이 꼭 필요하고, 어떤 것이 필요 없는지 구분하고 이유도 한 줄씩 붙여줘.\n1) 2026년 최저임금이 얼마인지 알려줘.\n2) 보고서에서 자주 쓰는 '컨센서스'라는 단어의 뜻을 알려줘.\n3) 우리 회사 경쟁사인 [회사명]의 최근 신제품 소식을 알려줘.", "n": 6}, {"s": 1, "t": "예시", "title": "표를 엑셀로 받고 검증하기", "hint": "표를 파일로 내려받아 원본과 대조.", "p": "아래 내용을 [거래처명 / 품목 / 수량 / 단가 / 합계] 5열 표로 만들어 별도 창에 띄워줘.\n합계는 계산식도 함께 보여주고, 내가 적지 않은 값은 \"확인 필요\"로 표시해줘.\n- 대한상사 / 사무용 의자 / 20개 / 45,000원\n- 한빛물산 / 모니터 받침대 / 15개 / 12,000원\n- 서울테크 / 키보드 / 30개 / (단가 미정)\n\n표가 확인되면 엑셀 파일로 만들고, 행 수 3개와 합계 값을 원본과 직접 대조해줘.", "n": 7}, {"s": 1, "t": "예시", "title": "4원칙 반영한 프로젝트 지침 만들기", "hint": "입력 전 4원칙을 지침 문장으로.", "p": "나는 [영업팀 / 견적·계약 관리] 업무를 맡고 있어.\n아래 4원칙을 반영해 프로젝트 지침으로 바로 붙여넣을 문장을 [역할][말투][형식][금지][수치] 다섯 항목으로 만들어줘.\n1) 실제 고객명·금액·계약 조건은 넣지 않는다\n2) 확실하지 않은 값은 \"확인 필요\"로 표시한다\n3) 숫자·날짜는 원문 그대로 옮기고 계산식을 함께 보여준다\n4) 외부 발송·게시는 승인 없이 실행하지 않는다", "n": 8}, {"s": 1, "t": "예시", "title": "정부·공공 지원사업 찾아 정리하기", "hint": "최신 지원사업을 출처와 함께 3줄로.", "p": "[중소기업 / 우리 업종]이 올해 신청할 수 있는 정부·지자체 지원사업을 검색해서 3줄로 정리해줘.\n각 줄마다 사업명과 함께 어느 기관 자료에서 나왔는지 출처를 붙여줘.\n검색으로 확인되지 않은 내용은 넣지 말고, 확실하지 않으면 \"확인 필요\"라고 써줘.", "n": 9}, {"s": 1, "t": "예시", "title": "월간 실적 한눈에 보기", "hint": "이번 달·지난 달 비교 표와 차트.", "p": "아래 내용을 [항목 / 이번 달 / 지난 달 / 증감] 4열 표로 만들어 별도 창에 띄우고,\n내가 적지 않은 값은 \"확인 필요\"로 표시해줘.\n[내용]\n- 고객 문의 접수 건수\n- 처리 완료 건수\n- 평균 응대 시간\n(실제 숫자 채우기)\n\n── 표가 나오면 이어서 ──\n이번 달과 지난 달을 비교하는 막대 차트로 그려줘.", "n": 10}, {"s": 1, "t": "예시", "title": "반복 공지·안내문 초안 만들기", "hint": "자주 쓰는 공지 틀을 아티팩트로.", "p": "사내에 반복해서 올리는 [교육 일정 안내] 공지문 초안을 별도 창으로 만들어줘.\n[제목 / 대상 / 일시·장소 / 준비물 / 문의처] 항목이 들어가게 하고,\n내가 채워야 하는 자리는 [ ] 로 비워둬. 정중한 존댓말, 10문장 이내로.", "n": 11}, {"s": 1, "t": "예시", "title": "우리 부서용 프로젝트 지침 만들기", "hint": "직무에 맞춘 지침을 다섯 항목으로.", "p": "나는 [총무 / 비품·자산 관리] 업무를 맡고 있어.\n내 프로젝트 지침으로 붙여넣을 수 있게 [역할][말투][형식][금지][수치] 다섯 항목으로 만들어줘.\n- 표를 만들 때는 항상 '근거' 열을 포함한다\n- 내가 주지 않은 값은 지어내지 않고 \"확인 필요\"로 표시한다\n- 실제 거래처명·금액·계약 조건은 다루지 않는다", "n": 12}, {"s": 2, "t": "교안", "title": "AI가 무엇을 보고 있는지 확인하기", "hint": "컨텍스트 네 층을 나눠 확인.", "p": "지금 네가 참고할 수 있는 정보를 아래 네 가지로 나눠서 알려줘.\n1) 프로젝트 지침에 적힌 규칙\n2) 프로젝트에 올라온 자료\n3) 이 대화에서 지금까지 나온 내용\n4) 방금 내가 보낸 메시지\n각 항목에 실제로 무엇이 들어 있는지 적고, 비어 있으면 \"없음\"이라고 써줘.\n네가 볼 수 없는 것도 함께 알려줘.", "n": 13}, {"s": 2, "t": "교안", "title": "지침 보강하기", "hint": "빠진 부분·보완 문구만 받기.", "p": "아래는 내 프로젝트 지침이야.\n(1교시에서 넣은 지침을 붙여넣기)\n\n내 업무는 [업무 설명]이야.\n이 지침에서 1) 빠져 있는 항목 2) 너무 넓어서 지켜지기 어려운 항목 을 짚어 주고,\n보완 문구만 따로 제시해줘. 전체를 다시 쓰지는 마.", "n": 14}, {"s": 2, "t": "교안", "title": "위임 후보 골라내기", "hint": "질문 5개 뒤 후보 3개를 표로.", "p": "나는 사무직으로 일하고 있어.\n지금 바로 답을 만들지 말고, 내가 반복하는 업무 중 AI에게 맡기기 좋은 업무를 고를 수 있도록 질문을 5개만 해줘.\n질문은 번호를 붙여 한 번에 보여주고, 내가 답하기 전에는 다음 단계로 넘어가지 마.\n\n── 답한 뒤 이어서 ──\n내 답변을 바탕으로 위임 후보 3개만 골라줘.\n① 적합 이유 ② 위험 ③ 사람 확인 지점을 표로 정리해줘.", "n": 15}, {"s": 2, "t": "교안", "title": "환각 방지 한 줄 붙이기", "hint": "어떤 요청이든 마지막에 한 줄.", "p": "확실하지 않은 내용은 \"확인 필요\"라고 표시해줘.", "n": 16}, {"s": 2, "t": "교안", "title": "회의록에서 할 일 뽑기", "hint": "결정된 것과 할 일을 나눠 표로.", "p": "아래 회의록에서 '결정된 것'과 '할 일'을 나눠서 정리해줘.\n할 일은 [내용 / 담당 / 기한] 3열 표로 만들고, 자료에 없는 내용은 넣지 마.\n기한이 적혀 있지 않으면 \"확인 필요\"라고 써줘.\n\n[회의록]\n(여기에 회의록 붙여넣기)", "n": 17}, {"s": 2, "t": "교안", "title": "자료를 보고용으로 요약하기", "hint": "팀장 보고용 3줄, 없는 내용 금지.", "p": "아래 자료를 팀장 보고용으로 3줄로 요약해줘.\n숫자와 날짜는 원문 그대로 쓰고, 자료에 없는 내용은 넣지 마.\n\n[자료]\n(여기에 자료 붙여넣기)", "n": 18}, {"s": 2, "t": "교안", "title": "거래처 안내 메일 쓰기", "hint": "정해진 순서·분량·말투로.", "p": "거래처에 납기 지연을 알리는 메일을 써줘.\n사과 → 지연 사유 → 변경된 일정 → 요청사항 순서로,\n5문장 이내, 정중한 존댓말로 써줘.", "n": 19}, {"s": 2, "t": "예시", "title": "질문형과 위임형 구분해 요청하기", "hint": "같은 업무를 두 방식으로 비교.", "p": "같은 업무를 두 가지 방식으로 각각 요청해볼게. 두 결과의 차이를 나중에 설명해줘.\n\n[질문형] 신입사원 온보딩 자료에 뭘 넣으면 좋을지 알려줘.\n\n[위임형] 신입사원 온보딩 체크리스트를 만들어줘.\n항목은 [분류 / 할 일 / 담당 / 기한] 4열 표로 만들고, 기한이 없는 항목은 \"확인 필요\"로 표시해줘.", "n": 20}, {"s": 2, "t": "예시", "title": "환각 방지 문구 실전 적용", "hint": "빈칸을 확인 필요로 남기고 건수 세기.", "p": "아래 신청자 명단을 표로 정리해줘. 담당자와 처리 상태가 빈칸인 항목이 있어.\n- 김민준 / 연차 신청 / 담당자 미정 / 처리 상태 미정\n- 이서연 / 출장비 정산 / 담당 박과장 / 처리 상태 미정\n- 최도윤 / 장비 구매 요청 / 담당자 미정 / 처리 완료\n\n빈칸을 임의로 채우지 말고 모두 \"확인 필요\"라고 써줘.\n표 아래에 \"확인 필요\"가 몇 건인지 숫자로도 알려줘.", "n": 21}, {"s": 2, "t": "예시", "title": "컨텍스트 네 층 자세히 확인하기", "hint": "실제 문장·파일명까지 구분해서.", "p": "지금 네가 나에 대해 참고할 수 있는 정보를 네 가지로 나눠서 알려줘.\n1) 이 프로젝트 지침에 적힌 규칙 (있다면 실제 문장 그대로)\n2) 이 프로젝트에 올라온 자료 (있다면 파일명)\n3) 이 대화에서 지금까지 나온 내용 요약\n4) 방금 내가 보낸 이 메시지\n비어 있으면 \"없음\"이라 쓰고, 네가 볼 수 없는 것(다른 대화, 회사 시스템 자료 등)도 함께 알려줘.", "n": 22}, {"s": 2, "t": "예시", "title": "우리 팀 지침 빠진 부분 보강", "hint": "실제 지침을 붙여넣고 부족한 점만.", "p": "아래는 내 프로젝트 지침이야.\n[역할] 사무 업무를 돕는 도우미.\n[말투] 한국어 존댓말.\n[금지] 회사 정보를 지어내지 않는다.\n\n내 업무는 \"거래처별 월간 발주 현황을 정리하고 보고서를 만드는 일\"이야.\n1) 빠져 있는 항목 2) 너무 넓어서 지켜지기 어려운 항목 을 짚어주고,\n보완 문구만 따로 제시해줘. 전체를 다시 쓰지는 마.", "n": 23}, {"s": 2, "t": "예시", "title": "내 업무 중 위임 후보 찾기", "hint": "4가지 조건으로 후보 가려내기.", "p": "나는 사무직이고 아래 업무를 반복해서 하고 있어.\n- 매주 거래처별 발주 내역을 표로 정리\n- 매달 팀 회의록에서 결정 사항과 할 일을 뽑음\n- 가끔 신규 거래처 계약 조건을 최종 확정\n\n\"반복된다 / 입력이 정해져 있다 / 판단 기준을 말로 쓸 수 있다 / 틀려도 되돌릴 수 있다\"\n네 조건에 맞는 위임 후보를 골라주고, 조건별로 왜 맞는지·안 맞는지 표로 정리해줘.", "n": 24}, {"s": 2, "t": "예시", "title": "새 대화용 인수인계 요약 만들기", "hint": "길어진 대화를 새 대화로 옮기기.", "p": "지금까지 이 대화에서 정한 것들을 새 대화로 옮기려고 해.\n아래 형식으로 짧게 정리해줘. 내가 말하지 않은 내용은 넣지 마.\n1) 지금 하고 있는 일 (한 줄)\n2) 지금까지 확정된 규칙·형식\n3) 아직 \"확인 필요\"로 남아 있는 것\n4) 다음에 이어서 할 일", "n": 25}, {"s": 2, "t": "예시", "title": "반복 업무를 위임 지시문으로 바꾸기", "hint": "누가·어떤 모양·하지 말 것 넣기.", "p": "내가 자주 하는 요청은 \"[이번 주 민원 내용 정리해줘]\" 야.\n이 요청을 아래 세 가지가 분명히 들어가도록 다시 써줘.\n1) 누가 읽는지 (예: 팀장 보고용)\n2) 어떤 모양으로 (예: 3열 표 / 3줄 요약)\n3) 하지 말 것 (예: 자료에 없는 내용 넣지 않기)\n빠진 값은 \"확인 필요\"로 두게 조건도 붙여줘.", "n": 26}, {"s": 2, "t": "예시", "title": "환각이 생기기 쉬운 자리 미리 찾기", "hint": "위험한 칸을 사전 점검.", "p": "아래 표를 AI에게 정리시키기 전에, 어느 칸에서 잘못된 값이 지어내지기 쉬운지 먼저 짚어줘.\n이유도 한 줄씩 붙이고, 어떻게 물어봐야 안전한지도 알려줘. 표를 지금 정리하지는 마.\n[담당자] [처리 기한] [지난달 실적] [관련 규정 번호]", "n": 27}, {"s": 2, "t": "예시", "title": "두 자료 대조해 다른 점 찾기", "hint": "불일치만 표로, 판단은 사람 몫.", "p": "아래 두 목록을 대조해서 서로 다른 부분만 표로 정리해줘.\n없는 항목, 값이 다른 항목을 구분해 [항목 / A자료 / B자료 / 차이 유형] 4열로 만들어줘.\n내가 판단해야 하는 부분은 결론 내지 말고 \"확인 필요\"로 남겨줘.\n[A 자료] (붙여넣기)\n[B 자료] (붙여넣기)", "n": 28}, {"s": 3, "t": "교안", "title": "올린 자료를 표로 정리하기", "hint": "첨부 파일을 5열 표로, 별도 창.", "p": "올린 자료를 읽고 [항목 / 내용 / 담당 / 기한 / 상태] 5열 표로 정리해줘.\n자료에 없는 값은 임의로 채우지 말고 \"확인 필요\"라고 표시해줘.\n숫자와 날짜는 원문 그대로 옮기고, 합계를 냈으면 계산식도 함께 보여줘.\n표는 별도 창으로 만들어줘.", "n": 29}, {"s": 3, "t": "교안", "title": "표를 엑셀 파일로 받기", "hint": "받은 뒤 표본 2건을 원본과 대조.", "p": "위 표를 엑셀 파일로 만들어줘.", "n": 30}, {"s": 3, "t": "예시", "title": "사람이 확인해야 하는 지점 표로 만들기", "hint": "5단계별 사람 확인 지점 정리.", "p": "\"거래처별 월간 발주 현황 정리 및 보고서 작성\" 업무를 이해 / 계획 / 실행 / 검증 / 확정 5단계로 나눠줘.\n각 단계마다 1) AI가 하는 일 2) 사람이 반드시 확인할 일 3) 건너뛰면 생기는 위험 을 표로 정리하고,\n'확정' 단계에는 누가 책임지고 승인하는지 적을 자리를 비워둬.", "n": 31}, {"s": 3, "t": "예시", "title": "회의록에서 할 일 뽑기 (실전)", "hint": "실제와 비슷한 회의록으로 연습.", "p": "아래 회의록에서 '결정된 것'과 '할 일'을 나눠서 정리해줘.\n할 일은 [내용 / 담당 / 기한] 3열 표로 만들고, 회의록에 없는 내용은 넣지 마.\n담당이나 기한이 없으면 \"확인 필요\"라고 써줘.\n\n[회의록]\n오늘 회의에서는 3분기 마케팅 예산안을 다음 주까지 재검토하기로 했다.\n김대리가 경쟁사 프로모션 자료를 조사하기로 했다.\n신제품 출시일은 아직 미정이며 다음 회의에서 다시 논의한다.\n박과장은 협력업체 견적서를 이번 주 금요일까지 받기로 했다.", "n": 32}, {"s": 3, "t": "예시", "title": "자료를 대상별로 다르게 요약하기", "hint": "보고용·공유용을 각각 다른 형식으로.", "p": "아래 자료를 팀장 보고용으로 3줄 요약해줘. 숫자·날짜는 원문 그대로, 없는 내용은 넣지 마.\n[자료]\n이번 달 온라인몰 매출은 전월 대비 12% 증가한 3억 2천만원이다.\n반품률은 4.1%로 지난달과 비슷한 수준을 유지했다.\n신규 회원 가입자 수는 1,850명으로 목표치 2,000명에 다소 못 미쳤다.\n\n이어서, 같은 자료를 협력업체 공유용 메일로 5문장 이내, 정중한 존댓말로 다시 써줘.", "n": 33}, {"s": 3, "t": "예시", "title": "받은 파일 검증 체크리스트 만들기", "hint": "책상에 붙일 짧은 확인 목록.", "p": "클로드에게 표나 파일을 받을 때마다 바로 확인할 수 있는 \"파일 검증 체크리스트\"를 만들어줘.\n1) 원본 건수와 파일 행 수가 맞는지\n2) 숫자·날짜를 표본 2건 이상 대조했는지\n3) \"확인 필요\" 표시가 몇 건인지 세어 봤는지\n4) 0건이면 오히려 의심해 봤는지\n인쇄해 붙일 수 있게 간단한 문장으로.", "n": 34}, {"s": 3, "t": "예시", "title": "여러 자료의 같은 항목 모으기", "hint": "흩어진 자료를 한 표로 취합.", "p": "아래에 붙여넣는 여러 건의 자료에서 [거래처 / 품목 / 수량 / 요청일] 항목만 뽑아 하나의 표로 모아줘.\n자료에 없는 값은 \"확인 필요\"로 표시하고, 같은 거래처가 여러 번 나오면 합치지 말고 각각 보여줘. 표는 별도 창으로.\n[자료들] (여러 건 붙여넣기)", "n": 35}, {"s": 3, "t": "예시", "title": "파일명·형식 규칙에 맞게 정리", "hint": "이름 규칙을 말로 적어 제안받기.", "p": "아래 파일 목록을 내가 정한 규칙에 맞는 새 이름으로 바꿔 [기존 이름 / 새 이름] 표로 제안해줘.\n규칙: \"YYYYMMDD_부서_문서종류\" 형식, 띄어쓰기는 밑줄로. 실제 파일은 바꾸지 말고 제안만.\n규칙에 맞출 수 없는 파일은 \"확인 필요\"로 표시해줘.\n[파일 목록] (붙여넣기)", "n": 36}, {"s": 3, "t": "예시", "title": "나만의 '파일 확인 순서' 만들기", "hint": "월말 정산 등 내 업무에 맞춰.", "p": "내가 [월말 정산 자료]를 엑셀 파일로 받은 뒤 바로 따라 할 '확인 순서 5단계'를 만들어줘.\n숫자·날짜 표본 대조와 \"확인 필요\" 건수 세기를 반드시 포함하고, 한 단계당 한 문장으로.", "n": 37}, {"s": 3, "t": "예시", "title": "코워크 작업, 계획만 받고 멈추기", "hint": "승인 전까지 파일을 만들지 않게.", "p": "지금은 실제 작업을 하지 말고 계획만 세워줘.\n연결된 폴더에서 [회의록 파일들을 정리]하려는데,\n1) 어떤 파일을 대상으로 할지 2) 어떤 순서로 처리할지 3) 무엇은 건드리지 않을지 를 먼저 목록으로 보여주고,\n내가 승인하기 전까지 파일을 만들거나 바꾸지 마.", "n": 38}, {"s": 4, "t": "교안", "title": "스킬로 회의록 정리하기", "hint": "이름을 말하지 않고 스킬 불러내기.", "p": "아래 회의록에서 할 일을 정리해줘.\n\n[회의록]\n(회의록 붙여넣기)", "n": 39}, {"s": 4, "t": "교안", "title": "내 업무용 스킬 만들기", "hint": "다섯 칸을 채워 SKILL.md 완성.", "p": "내가 반복하는 업무 하나를 Claude 스킬로 만들고 싶어.\n지금 바로 만들지 말고, 언제 · 입력 · 절차 · 출력 · 금지 다섯 칸을 채울 빈칸 표를 먼저 보여줘.\n내가 표를 채우기 전에는 초안을 쓰지 마. 채운 뒤 이어서 그 내용으로 SKILL.md를 작성해줘.", "n": 40}, {"s": 4, "t": "예시", "title": "스킬을 이름 없이 불러보기", "hint": "'정리해줘'만으로 호출되는지 확인.", "p": "아래 회의록에서 할 일을 정리해줘.\n\n[회의록]\n오늘 회의에서는 신규 채용 공고를 이번 주 내로 게시하기로 했다.\n인사팀 이과장이 공고 초안을 작성하고, 채용 사이트 등록은 다음 주 월요일까지 완료한다.\n면접 일정은 아직 확정되지 않았다.\n\n(스킬 이름을 말하지 않아도 담당·기한 열이 있는 표와 \"확인 필요\"가 나오면 성공)", "n": 41}, {"s": 4, "t": "예시", "title": "다섯 칸 사양으로 스킬 채우기", "hint": "실제 업무로 SKILL.md 초안 받기.", "p": "\"거래처별 발주 내역 정리\" 업무를 클로드 스킬로 만들고 싶어.\n지금 만들지 말고 아래 다섯 칸을 채울 빈칸 표를 먼저 보여줘.\n- 언제: 쓰는 상황과 호출 단서 단어\n- 입력: 무엇을 받아 시작하는지\n- 절차: 어떤 순서로 처리하는지 (3~6단계)\n- 출력: 결과의 형태와 열 이름\n- 금지: 하면 안 되는 것\n표를 채우기 전에는 초안을 쓰지 마. 채운 뒤 이어서 SKILL.md를 작성해줘.", "n": 42}, {"s": 4, "t": "예시", "title": "스킬 설명(description) 다듬기", "hint": "불려 나오게 설명을 명확히.", "p": "아래는 내 스킬 설명이야: \"문서를 잘 정리해 줍니다.\"\n이 설명이 왜 불려 나오기 어려운지 짚어주고,\n\"무슨 일을 하는지 / 언제 쓰는지 / 어떤 말이 나오면 쓰는지\" 세 가지가 분명히 들어가게 다시 써줘.\n업무는 \"거래처별 발주 내역을 표로 정리하는 것\"이야.", "n": 43}, {"s": 4, "t": "예시", "title": "스킬 호출 시험 시나리오 만들기", "hint": "정상·인접·무관 문장으로 시험.", "p": "내가 만든 \"거래처별 발주 내역 정리\" 스킬을 시험해 보려고 해.\n아래 네 성격의 요청 문장을 각각 1개씩 만들어줘. 스킬 이름은 넣지 마.\n1) 정상 (내 업무 표현) → 호출되어야 함\n2) 정상 (다른 표현) → 호출되어야 함\n3) 인접 (비슷하지만 다른 업무) → 호출되면 안 됨\n4) 무관 (전혀 다른 업무) → 호출되면 안 됨\n각 문장 옆에 이유도 한 줄씩.", "n": 44}, {"s": 4, "t": "예시", "title": "답변 메일을 스킬로 만들기", "hint": "반복 답변을 저장해 재사용.", "p": "[자주 받는 문의에 대한 표준 답변 메일 작성] 업무를 클로드 스킬로 만들고 싶어.\n지금 만들지 말고 언제·입력·절차·출력·금지 다섯 칸을 채울 빈 표를 먼저 보여줘.\n금지 칸에는 \"고객 실명·계약 금액을 본문에 넣지 않는다\"가 들어가야 해.\n표를 채운 뒤 이어서 SKILL.md를 작성해줘.", "n": 45}, {"s": 4, "t": "예시", "title": "스킬 '금지' 칸 꼼꼼히 채우기", "hint": "업무 위험에 맞는 금지 항목 5개.", "p": "내 스킬은 \"[거래처 발주 내역을 표로 정리하는 것]\" 이야.\n이 스킬에 꼭 들어가야 할 '금지 항목'을 5개만 제안해줘.\n값 지어내기·회사 정보 입력 금지 외에, 이 업무에서 특히 위험한 것을 중심으로. 이유도 한 줄씩.", "n": 46}, {"s": 4, "t": "예시", "title": "비슷한 스킬, 설명으로 구분하기", "hint": "두 스킬이 안 겹치게 설명 나누기.", "p": "비슷한 스킬 두 개를 만들었어.\nA: \"회의록에서 할 일을 뽑아 표로 정리\"\nB: \"이메일에서 요청사항을 뽑아 표로 정리\"\n서로 잘못 호출되지 않도록 각 설명에 '무슨 일 / 언제 / 어떤 말이 나오면'이 다르게 들어가게 다시 써줘.\n겹치는 단어가 있으면 무엇인지도 짚어줘.", "n": 47}, {"s": 5, "t": "예시", "title": "터미널 명령, 탐색기에 빗대어 이해", "hint": "조회 명령 5개를 마우스 동작에 빗대기.", "p": "나는 파일 탐색기는 익숙한데 터미널은 처음이야.\npwd, ls, cd, cd .., exit 다섯 개 명령을 각각 \"내가 평소 마우스로 하던 행동\" 한 가지에 빗대어 한 줄씩 설명해줘.\n이 다섯 개는 모두 \"조회 전용\"이라 반복해도 아무것도 바뀌지 않는다는 점도 강조해줘.", "n": 48}, {"s": 5, "t": "예시", "title": "Plan 모드와 diff 승인 이해하기", "hint": "승인 절차가 왜 안전장치인지.", "p": "클로드 코드를 처음 쓰는 사무직 직원에게 설명하듯이 \"Plan 모드\"와 \"diff 승인\"이 왜 필요한지 설명해줘.\n1) 승인 전까지 실제로 파일이 바뀌는가?\n2) diff를 보지 않고 바로 승인하면 어떤 위험이 있는가?\n3) \"속도\"가 아니라 \"통제\"가 핵심이라는 말은 무슨 뜻인가?", "n": 49}, {"s": 5, "t": "예시", "title": "업무를 3단계로 나눠 순차 진행", "hint": "단계마다 승인 지점을 두기.", "p": "\"이번 달 거래처별 발주 내역 정리 및 보고서 작성\" 업무를 3단계로 나눠 순서대로 진행해줘.\n각 단계가 끝나면 확인을 받고 다음으로 넘어가.\n1단계: 발주 내역을 [거래처 / 품목 / 수량 / 금액] 표로 정리 (빈칸은 \"확인 필요\")\n2단계: (승인하면) 표를 바탕으로 보고서 초안 작성\n3단계: (승인하면) 보고서의 숫자를 표와 대조해 검증\n지금은 1단계만 진행해줘.", "n": 50}, {"s": 5, "t": "예시", "title": "조회 명령 안전 연습 순서 짜기", "hint": "변경 없는 명령만으로 연습.", "p": "터미널이 처음인 사무직이 안전하게 연습하도록 pwd · ls · cd · cd .. · exit 다섯 개만 쓰는 연습 순서를 단계별로 짜줘.\n각 단계에서 무엇을 확인하게 되는지 한 줄씩 붙이고, 삭제·덮어쓰기·권한 변경 같은 위험한 명령은 넣지 마.", "n": 51}, {"s": 5, "t": "예시", "title": "Plan 모드로 무엇이 바뀌는지만 확인", "hint": "바꾸기 전 전·후를 목록으로.", "p": "클로드 코드에서 [문서 폴더의 파일 이름을 규칙에 맞게 정리]하려고 해.\n지금은 Plan 모드라 생각하고 실제로 바꾸지 말고,\n1) 어떤 파일이 대상인지 2) 각 파일이 어떻게 바뀌는지(전 → 후) 만 목록으로 보여줘.\n내가 diff를 보고 승인하기 전에는 아무것도 바꾸지 마.", "n": 52}, {"s": 5, "t": "예시", "title": "안전한 업무로 3단계 협업 연습", "hint": "교육 신청자 정리·안내문 예시.", "p": "[사내 교육 신청자 명단 정리 및 안내문 작성] 업무를 3단계로 나눠 진행해줘.\n각 단계가 끝나면 멈추고 내 확인을 받은 뒤 다음으로 넘어가.\n1단계: 신청자 명단을 [이름 / 부서 / 신청 과정 / 상태] 표로 정리 (빈칸은 \"확인 필요\")\n2단계: (승인하면) 정리된 명단으로 안내문 초안 작성\n3단계: (승인하면) 안내문의 이름·과정명을 표와 대조해 검증\n지금은 1단계만 해줘.", "n": 53}]};
+const root=document.getElementById('root');
+let filter='all', kw='';
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function render(){
+  root.innerHTML='';
+  let shown=0;
+  DATA.sessions.forEach(se=>{
+    let items=DATA.prompts.filter(p=>p.s===se.no);
+    if(filter!=='all') items=items.filter(p=>p.t===filter);
+    if(kw){const k=kw.toLowerCase();
+      items=items.filter(p=>(p.title+p.hint+p.p).toLowerCase().includes(k));}
+    if(!items.length) return;
+    shown+=items.length;
+    const sec=document.createElement('section');
+    sec.id='s'+se.no;
+    sec.innerHTML=`<div class="shead"><span class="snum">${se.no}교시</span>
+      <h2>${se.title}</h2><span class="ssub">${se.sub}</span></div>`;
+    ['교안','예시'].forEach(tp=>{
+      const arr=items.filter(p=>p.t===tp);
+      if(!arr.length) return;
+      const label=tp==='교안'?'교안용':'예시용';
+      const sh=document.createElement('div');sh.className='subhead';sh.textContent=label;
+      sec.appendChild(sh);
+      const grid=document.createElement('div');grid.className='grid';
+      arr.forEach(p=>{
+        const cls=tp==='교안'?'gyoan':'yesi';
+        const card=document.createElement('div');card.className='card';
+        card.innerHTML=`<div class="top">
+            <h3><span class="num">${p.n}.</span> ${esc(p.title)}</h3>
+            <span class="badge ${cls}">${label}</span></div>
+          <p class="hint">${esc(p.hint)}</p>
+          <div class="code">${esc(p.p)}</div>
+          <div class="cardfoot"><button class="copy">프롬프트 복사</button></div>`;
+        card.querySelector('.copy').addEventListener('click',e=>{
+          navigator.clipboard.writeText(p.p).then(()=>{
+            const b=e.target;b.textContent='복사됨 ✓';b.classList.add('done');
+            setTimeout(()=>{b.textContent='프롬프트 복사';b.classList.remove('done');},1400);
+          });
+        });
+        grid.appendChild(card);
       });
+      sec.appendChild(grid);
     });
+    root.appendChild(sec);
+  });
+  document.getElementById('empty').style.display=shown?'none':'block';
+}
 
-    async function copyPrompt(btn){
-      const card = btn.closest('.prompt-card');
-      const text = card.querySelector('pre').innerText;
-      try{
-        await navigator.clipboard.writeText(text);
-        const old = btn.innerText;
-        btn.innerText = '복사 완료';
-        setTimeout(() => btn.innerText = old, 1200);
-      }catch(err){
-        alert('복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
-      }
-    }
-  </script>
+// stats + nav
+(function(){
+  const n=DATA.prompts.length;
+  const g=DATA.prompts.filter(p=>p.t==='교안').length;
+  document.getElementById('stats').innerHTML=
+    `<span class="pill">전체 ${n}개</span><span class="pill">교안용 ${g}개</span><span class="pill">예시용 ${n-g}개</span><span class="pill">5개 교시</span>`;
+  document.getElementById('snav').innerHTML=DATA.sessions.map(s=>
+    `<a href="#s${s.no}">${s.no}교시 · ${s.title}</a>`).join('');
+})();
+
+document.getElementById('q').addEventListener('input',e=>{kw=e.target.value.trim();render();});
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',e=>{
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+  e.target.classList.add('on');filter=e.target.dataset.f;render();
+}));
+const tt=document.getElementById('totop');
+window.addEventListener('scroll',()=>tt.classList.toggle('show',scrollY>500));
+tt.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));
+render();
+</script>
 </body>
 </html>
